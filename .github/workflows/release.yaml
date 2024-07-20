@@ -262,6 +262,7 @@ jobs:
               tmp/"${channel}"/* \
               '${{ env.ITCH_TARGET }}':"${channel#package-}"
           done
+          
 jobs:
   # Determine the version number for this workflow.
   get-version:
