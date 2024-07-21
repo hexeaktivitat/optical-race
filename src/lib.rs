@@ -2,17 +2,17 @@ use bevy::prelude::*;
 // use bevy_console::ConsoleCommand;
 // use clap::Parser;
 use input::{InputPlugin, InputSet};
-use loading::{LoadingPlugin, LoadingSet};
+use loading::LoadingPlugin;
 use menu::{MenuPlugin, MenuSet, PauseSet};
 use osc::{OscPlugin, OscSet};
-use player::{PlayerPlugin, PlayerSet};
+// use player::{PlayerPlugin, PlayerSet};
 use pot::{PotPlugin, PotSet};
 
 mod input;
 mod loading;
 mod menu;
 mod osc;
-mod player;
+// mod player;
 mod pot;
 
 pub struct OpticalRacePlugin;
