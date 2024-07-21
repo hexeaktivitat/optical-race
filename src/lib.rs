@@ -6,12 +6,14 @@ use loading::{LoadingPlugin, LoadingSet};
 use menu::{MenuPlugin, MenuSet, PauseSet};
 use osc::{OscPlugin, OscSet};
 use player::{PlayerPlugin, PlayerSet};
+use pot::{PotPlugin, PotSet};
 
 mod input;
 mod loading;
 mod menu;
 mod osc;
 mod player;
+mod pot;
 
 pub struct OpticalRacePlugin;
 
@@ -24,10 +26,13 @@ impl Plugin for OpticalRacePlugin {
 
         app.configure_sets(
             OnEnter(ApplicationState::InGame),
-            OscSet
-                // .run_if(in_state(ApplicationState::Loading))
-                // .run_if(in_state(ApplicationState::Menu))
-                .run_if(in_state(ApplicationState::InGame)),
+            (
+                OscSet
+                    // .run_if(in_state(ApplicationState::Loading))
+                    // .run_if(in_state(ApplicationState::Menu))
+                    .run_if(in_state(ApplicationState::InGame)),
+                PotSet.run_if(in_state(ApplicationState::InGame)),
+            ),
         );
         app.configure_sets(OnEnter(ApplicationState::Menu), MenuSet);
         // app.configure_sets(OnEnter(ApplicationState::Loading), LoadingSet);
@@ -55,6 +60,7 @@ impl Plugin for OpticalRacePlugin {
             InputPlugin,
             LoadingPlugin,
             OscPlugin,
+            PotPlugin,
         ));
 
         // systems

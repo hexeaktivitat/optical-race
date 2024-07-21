@@ -21,7 +21,7 @@ fn load_oscs(
     mut next_app_state: ResMut<NextState<ApplicationState>>,
     mut next_game_state: ResMut<NextState<ModeState>>,
 ) {
-    let origin_x = -400.;
+    let origin_x = -128.;
     let origin_y = 0.;
 
     let sine_sprite: Handle<Image> = server.load("sine_tile.png");
@@ -31,7 +31,7 @@ fn load_oscs(
         state: OscState::Inactive,
         sprite: SpriteBundle {
             texture: sine_sprite,
-            transform: Transform::from_translation(Vec3::new(origin_x - 64., origin_y, 0.)),
+            transform: Transform::from_translation(Vec3::new(origin_x - 32., origin_y, 0.)),
             ..default()
         },
     };
@@ -44,7 +44,7 @@ fn load_oscs(
         state: OscState::Inactive,
         sprite: SpriteBundle {
             texture: triangle_sprite,
-            transform: Transform::from_translation(Vec3::new(origin_x, origin_y + 64., 0.)),
+            transform: Transform::from_translation(Vec3::new(origin_x, origin_y + 32., 0.)),
             ..default()
         },
     };
@@ -70,7 +70,7 @@ fn load_oscs(
         state: OscState::Inactive,
         sprite: SpriteBundle {
             texture: sawtooth_sprite,
-            transform: Transform::from_translation(Vec3::new(origin_x + 64., origin_y, 0.)),
+            transform: Transform::from_translation(Vec3::new(origin_x + 32., origin_y, 0.)),
             ..default()
         },
     };
