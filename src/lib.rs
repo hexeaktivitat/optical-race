@@ -2,6 +2,7 @@ use bevy::prelude::*;
 // use bevy_console::ConsoleCommand;
 // use clap::Parser;
 use input::{InputPlugin, InputSet};
+use led::LedPlugin;
 use loading::LoadingPlugin;
 use menu::{MenuPlugin, MenuSet, PauseSet};
 use osc::{OscPlugin, OscSet};
@@ -13,6 +14,7 @@ mod loading;
 mod menu;
 mod osc;
 // mod player;
+mod led;
 mod pot;
 
 pub struct OpticalRacePlugin;
@@ -61,6 +63,7 @@ impl Plugin for OpticalRacePlugin {
             LoadingPlugin,
             OscPlugin,
             PotPlugin,
+            LedPlugin,
         ));
 
         // systems
