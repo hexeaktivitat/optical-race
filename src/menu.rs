@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{ApplicationState, PauseState};
+use crate::{ApplicationState, ModeState, PauseState};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct MenuSet;
@@ -165,16 +165,20 @@ fn interact_game_menu(
         ),
         (Changed<Interaction>, With<Button>),
     >,
-    mut next_state: ResMut<NextState<ApplicationState>>,
+    mut next_app_state: ResMut<NextState<ApplicationState>>,
+    mut next_mode_state: ResMut<NextState<ModeState>>,
 ) {
     for (interaction, menu_options, mut color, mut border, _children) in
         interaction_query.iter_mut()
     {
         match *interaction {
             Interaction::Pressed => match menu_options {
-                MenuOptions::Start => next_state.set(ApplicationState::Loading),
-                MenuOptions::Resume => next_state.set(ApplicationState::InGame),
-                MenuOptions::Exit => next_state.set(ApplicationState::Exit),
+                MenuOptions::Start => next_app_state.set(ApplicationState::Loading),
+                MenuOptions::Resume => next_app_state.set(ApplicationState::InGame),
+                MenuOptions::Exit => {
+                    next_app_state.set(ApplicationState::Exit);
+                    next_mode_state.set(ModeState::NotInGame)
+                }
             },
             Interaction::Hovered => {
                 *color = BackgroundColor(Color::Srgba(DARK_SEA_GREEN));

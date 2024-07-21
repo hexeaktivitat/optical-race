@@ -4,11 +4,13 @@ use bevy::prelude::*;
 use input::{InputPlugin, InputSet};
 use loading::{LoadingPlugin, LoadingSet};
 use menu::{MenuPlugin, MenuSet, PauseSet};
+use osc::OscPlugin;
 use player::{PlayerPlugin, PlayerSet};
 
 mod input;
 mod loading;
 mod menu;
+mod osc;
 mod player;
 
 pub struct OpticalRacePlugin;
@@ -28,13 +30,14 @@ impl Plugin for OpticalRacePlugin {
                 .run_if(in_state(ApplicationState::InGame)),
         );
         app.configure_sets(OnEnter(ApplicationState::Menu), MenuSet);
-        app.configure_sets(OnEnter(ApplicationState::Loading), LoadingSet);
+        // app.configure_sets(OnEnter(ApplicationState::Loading), LoadingSet);
         app.configure_sets(
             Update,
             (
                 PlayerSet
                     .run_if(in_state(ApplicationState::InGame))
-                    .run_if(in_state(PauseState::Unpaused)),
+                    .run_if(in_state(PauseState::Unpaused))
+                    .run_if(in_state(ModeState::Singleplayer)),
                 InputSet,
                 PauseSet.run_if(in_state(PauseState::Paused)),
             ),
@@ -46,7 +49,13 @@ impl Plugin for OpticalRacePlugin {
         app.insert_resource(Time::<Fixed>::from_hz(60.0));
 
         // plugins
-        app.add_plugins((PlayerPlugin, MenuPlugin, InputPlugin, LoadingPlugin));
+        app.add_plugins((
+            PlayerPlugin,
+            MenuPlugin,
+            InputPlugin,
+            LoadingPlugin,
+            OscPlugin,
+        ));
 
         // systems
         app.add_systems(OnEnter(ApplicationState::Exit), exit_game);
@@ -87,8 +96,8 @@ pub enum ApplicationState {
 
 #[derive(States, Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub enum ModeState {
-    NotInGame,
     #[default]
+    NotInGame,
     Singleplayer,
 }
 

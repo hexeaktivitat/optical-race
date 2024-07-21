@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::ApplicationState;
+use crate::{ApplicationState, ModeState};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct LoadingSet;
@@ -35,8 +35,14 @@ fn loading_display(mut commands: Commands) {
     });
 }
 
-fn loading_clear(mut commands: Commands, mut query: Query<Entity, With<Text>>) {
+fn loading_clear(
+    mut commands: Commands,
+    mut query: Query<Entity, With<Text>>,
+    mut next_mode_state: ResMut<NextState<ModeState>>,
+) {
     for entity in query.iter_mut() {
         commands.entity(entity).despawn();
     }
+
+    next_mode_state.set(ModeState::Singleplayer);
 }
