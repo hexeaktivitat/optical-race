@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use input::{InputPlugin, InputSet};
 use loading::{LoadingPlugin, LoadingSet};
 use menu::{MenuPlugin, MenuSet, PauseSet};
-use osc::OscPlugin;
+use osc::{OscPlugin, OscSet};
 use player::{PlayerPlugin, PlayerSet};
 
 mod input;
@@ -24,7 +24,7 @@ impl Plugin for OpticalRacePlugin {
 
         app.configure_sets(
             OnEnter(ApplicationState::InGame),
-            PlayerSet
+            OscSet
                 // .run_if(in_state(ApplicationState::Loading))
                 // .run_if(in_state(ApplicationState::Menu))
                 .run_if(in_state(ApplicationState::InGame)),
@@ -34,10 +34,10 @@ impl Plugin for OpticalRacePlugin {
         app.configure_sets(
             Update,
             (
-                PlayerSet
-                    .run_if(in_state(ApplicationState::InGame))
-                    .run_if(in_state(PauseState::Unpaused))
-                    .run_if(in_state(ModeState::Singleplayer)),
+                // PlayerSet
+                //     .run_if(in_state(ApplicationState::InGame))
+                //     .run_if(in_state(PauseState::Unpaused))
+                //     .run_if(in_state(ModeState::Singleplayer)),
                 InputSet,
                 PauseSet.run_if(in_state(PauseState::Paused)),
             ),
@@ -50,7 +50,7 @@ impl Plugin for OpticalRacePlugin {
 
         // plugins
         app.add_plugins((
-            PlayerPlugin,
+            // PlayerPlugin,
             MenuPlugin,
             InputPlugin,
             LoadingPlugin,
