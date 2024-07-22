@@ -72,12 +72,6 @@ fn tick_leds(
     }
 }
 
-fn flip_leds(
-    query: Query<(&LedState, &mut Handle<Image>), With<LedTag>>,
-    server: Res<AssetServer>,
-) {
-}
-
 #[derive(Bundle)]
 struct LedBundle {
     state: LedState,
