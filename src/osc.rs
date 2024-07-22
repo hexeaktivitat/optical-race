@@ -159,8 +159,8 @@ enum OscState {
     Inactive,
 }
 
-#[derive(Component, PartialEq)]
-enum OscType {
+#[derive(Component, PartialEq, Clone)]
+pub(crate) enum OscType {
     Sine,
     Triangle,
     Square,

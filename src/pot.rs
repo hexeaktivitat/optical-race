@@ -181,8 +181,8 @@ fn unload_pots(mut commands: Commands, query: Query<Entity, With<PotTag>>) {
 #[derive(Component)]
 struct PotTag;
 
-#[derive(Component, PartialEq)]
-enum PotType {
+#[derive(Component, PartialEq, Clone)]
+pub(crate) enum PotType {
     PotJ,
     PotI,
     PotK,

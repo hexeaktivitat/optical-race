@@ -8,6 +8,7 @@ use menu::{MenuPlugin, MenuSet, PauseSet};
 use osc::{OscPlugin, OscSet};
 // use player::{PlayerPlugin, PlayerSet};
 use pot::{PotPlugin, PotSet};
+use track::TrackPlugin;
 
 mod input;
 mod loading;
@@ -16,6 +17,7 @@ mod osc;
 // mod player;
 mod led;
 mod pot;
+mod track;
 
 pub struct OpticalRacePlugin;
 
@@ -71,6 +73,7 @@ impl Plugin for OpticalRacePlugin {
             OscPlugin,
             PotPlugin,
             LedPlugin,
+            TrackPlugin,
         ));
 
         // systems

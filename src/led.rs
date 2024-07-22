@@ -209,7 +209,7 @@ enum LedState {
 }
 
 #[derive(Component, PartialEq, Debug)]
-enum LedPos {
+pub(crate) enum LedPos {
     A,
     B,
     C,
