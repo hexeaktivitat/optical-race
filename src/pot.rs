@@ -12,6 +12,8 @@ impl Plugin for PotPlugin {
         app.add_systems(OnEnter(ApplicationState::Loading), load_pots.in_set(PotSet));
         app.add_systems(Update, pot_input.in_set(PotSet));
         app.add_systems(OnEnter(ModeState::NotInGame), unload_pots.in_set(PotSet));
+
+        app.add_event::<PotActiveEvent>();
     }
 }
 
@@ -97,6 +99,7 @@ fn pot_input(
     keys: Res<ButtonInput<KeyCode>>,
     mut query: Query<(Entity, &PotType, &mut PotState, &mut Handle<Image>), With<PotTag>>,
     server: Res<AssetServer>,
+    mut ev_activate_pot: EventWriter<PotActiveEvent>,
 ) {
     for (_entity, pot_type, mut state, mut texture) in query.iter_mut() {
         for key in keys.get_pressed() {
@@ -168,6 +171,21 @@ fn pot_input(
                 }
                 _ => {}
             }
+        }
+    }
+}
+
+#[derive(Event)]
+struct PotActiveEvent(PotType);
+
+fn activate_pot(mut ev_activate_pot: EventReader<PotActiveEvent>) {
+    for ev in ev_activate_pot.read() {
+        match ev.0 {
+            PotType::PotJ => todo!(),
+            PotType::PotI => todo!(),
+            PotType::PotK => todo!(),
+            PotType::PotO => todo!(),
+            PotType::PotL => todo!(),
         }
     }
 }
