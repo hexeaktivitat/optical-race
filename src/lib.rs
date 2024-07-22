@@ -51,7 +51,12 @@ impl Plugin for OpticalRacePlugin {
         );
         app.configure_sets(Update, (MenuSet.run_if(in_state(ApplicationState::Menu)),));
 
-        app.configure_sets(FixedUpdate, LedSet);
+        app.configure_sets(
+            FixedUpdate,
+            LedSet
+                .run_if(in_state(ApplicationState::InGame))
+                .run_if(in_state(PauseState::Unpaused)),
+        );
 
         // resources
         // app.insert_resource(ResourceStruct {})
