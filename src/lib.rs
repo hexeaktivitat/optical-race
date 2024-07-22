@@ -2,7 +2,7 @@ use bevy::prelude::*;
 // use bevy_console::ConsoleCommand;
 // use clap::Parser;
 use input::{InputPlugin, InputSet};
-use led::LedPlugin;
+use led::{LedPlugin, LedSet};
 use loading::LoadingPlugin;
 use menu::{MenuPlugin, MenuSet, PauseSet};
 use osc::{OscPlugin, OscSet};
@@ -51,9 +51,11 @@ impl Plugin for OpticalRacePlugin {
         );
         app.configure_sets(Update, (MenuSet.run_if(in_state(ApplicationState::Menu)),));
 
+        app.configure_sets(FixedUpdate, LedSet);
+
         // resources
         // app.insert_resource(ResourceStruct {})
-        app.insert_resource(Time::<Fixed>::from_hz(60.0));
+        // app.insert_resource(Time::<Fixed>::from_hz(64.0));
 
         // plugins
         app.add_plugins((
