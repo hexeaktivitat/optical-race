@@ -30,7 +30,7 @@ struct LedTick {
 fn init_led_timer(mut commands: Commands) {
     let timer = LedTick {
         timer: Timer::new(Duration::from_millis(333), TimerMode::Repeating),
-        next_led: LedPos::A,
+        next_led: LedPos::B,
     };
 
     println!("timer spawned");
@@ -95,7 +95,7 @@ fn load_leds(mut commands: Commands, server: Res<AssetServer>) {
         sprite: SpriteBundle {
             transform: Transform::from_translation(Vec3::new(origin_x, origin_y, 0.)),
 
-            texture: on_tex,
+            texture: on_tex.clone(),
             ..default()
         },
     };
