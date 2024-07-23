@@ -154,7 +154,7 @@ fn unload_oscs(mut commands: Commands, query: Query<Entity, With<OscTag>>) {
 }
 
 #[derive(Component, PartialEq)]
-enum OscState {
+pub(crate) enum OscState {
     Active,
     Inactive,
 }

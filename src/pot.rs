@@ -1,6 +1,11 @@
 use bevy::prelude::*;
 
-use crate::{ApplicationState, ModeState};
+use crate::{
+    led::LedPos,
+    osc::{OscState, OscType},
+    track::Track,
+    ApplicationState, ModeState,
+};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct PotSet;
@@ -11,9 +16,11 @@ impl Plugin for PotPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(ApplicationState::Loading), load_pots.in_set(PotSet));
         app.add_systems(Update, pot_input.in_set(PotSet));
+        app.add_systems(FixedUpdate, check_note.in_set(PotSet));
         app.add_systems(OnEnter(ModeState::NotInGame), unload_pots.in_set(PotSet));
 
         app.add_event::<PotActiveEvent>();
+        app.add_event::<CheckNoteEvent>();
     }
 }
 
@@ -99,10 +106,10 @@ fn pot_input(
     keys: Res<ButtonInput<KeyCode>>,
     mut query: Query<(Entity, &PotType, &mut PotState, &mut Handle<Image>), With<PotTag>>,
     server: Res<AssetServer>,
-    mut ev_activate_pot: EventWriter<PotActiveEvent>,
+    mut _ev_activate_pot: EventWriter<PotActiveEvent>,
 ) {
     for (_entity, pot_type, mut state, mut texture) in query.iter_mut() {
-        for key in keys.get_pressed() {
+        for key in keys.get_just_pressed() {
             match key {
                 KeyCode::KeyJ => {
                     if pot_type == &PotType::PotJ {
@@ -175,10 +182,14 @@ fn pot_input(
     }
 }
 
+#[allow(dead_code)]
 #[derive(Event)]
 struct PotActiveEvent(PotType);
 
-fn activate_pot(mut ev_activate_pot: EventReader<PotActiveEvent>) {
+fn _activate_pot(
+    mut ev_activate_pot: EventReader<PotActiveEvent>,
+    mut _query: Query<(&PotType, &mut PotState, &mut Handle<Image>), With<PotTag>>,
+) {
     for ev in ev_activate_pot.read() {
         match ev.0 {
             PotType::PotJ => todo!(),
@@ -186,6 +197,49 @@ fn activate_pot(mut ev_activate_pot: EventReader<PotActiveEvent>) {
             PotType::PotK => todo!(),
             PotType::PotO => todo!(),
             PotType::PotL => todo!(),
+        }
+    }
+}
+
+#[allow(dead_code)]
+#[derive(Event)]
+pub(crate) struct CheckNoteEvent(pub(crate) LedPos);
+
+fn check_note(
+    mut ev_check_note: EventReader<CheckNoteEvent>,
+    mut track: ResMut<Track>,
+    time: Res<Time<Virtual>>,
+    pot_active_query: Query<(&PotState, &PotType)>,
+    osc_active_query: Query<(&OscState, &OscType)>,
+) {
+    for _ev in ev_check_note.read() {
+        if !track.seq.is_empty() {
+            let bpm = track.bpm;
+            match &mut *track.seq {
+                [head, tail @ ..] => {
+                    let current_frame = (time.elapsed_seconds_f64() / bpm).floor() as u64;
+                    println!("frame: {} time: {}", current_frame, head.time);
+                    if current_frame >= head.time {
+                        for (p_state, p_type) in pot_active_query.iter() {
+                            if head.note.pot == *p_type && *p_state == PotState::Active {
+                                println!("pot lane was correct");
+                                for (o_state, o_type) in osc_active_query.iter() {
+                                    if head.note.s1 == *o_type && *o_state == OscState::Active {
+                                        println!("osc type correct");
+                                        if current_frame == head.time
+                                            || current_frame <= head.time + 20
+                                        {
+                                            println!("success");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        track.seq = tail.into();
+                    }
+                }
+                _ => unreachable!(),
+            }
         }
     }
 }
@@ -199,7 +253,7 @@ fn unload_pots(mut commands: Commands, query: Query<Entity, With<PotTag>>) {
 #[derive(Component)]
 struct PotTag;
 
-#[derive(Component, PartialEq, Clone)]
+#[derive(Component, PartialEq, Eq, Clone, Copy)]
 pub(crate) enum PotType {
     PotJ,
     PotI,
@@ -208,7 +262,7 @@ pub(crate) enum PotType {
     PotL,
 }
 
-#[derive(Component)]
+#[derive(Component, PartialEq, Eq, Clone, Copy)]
 enum PotState {
     Active,
     Inactive,

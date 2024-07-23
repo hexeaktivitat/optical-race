@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{ApplicationState, ModeState};
+use crate::{pot::CheckNoteEvent, track::Track, ApplicationState, ModeState};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct LedSet;
@@ -42,6 +42,7 @@ fn tick_leds(
     mut timer_query: Query<&mut LedTick>,
     mut query: Query<(&mut LedState, &LedPos, &mut Handle<Image>)>,
     time: Res<Time>,
+    mut ev_check_note: EventWriter<CheckNoteEvent>,
 ) {
     for mut tick in timer_query.iter_mut() {
         tick.timer.tick(time.delta());
@@ -56,6 +57,7 @@ fn tick_leds(
                 if *pos == tick.next_led {
                     *state = LedState::On;
                     *tex = on_tex;
+                    ev_check_note.send(CheckNoteEvent(*pos));
                 }
             }
             tick.next_led = match tick.next_led {
@@ -208,7 +210,7 @@ enum LedState {
     Off,
 }
 
-#[derive(Component, PartialEq, Debug)]
+#[derive(Component, PartialEq, Debug, Copy, Clone)]
 pub(crate) enum LedPos {
     A,
     B,
