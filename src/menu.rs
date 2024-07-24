@@ -177,7 +177,7 @@ fn interact_game_menu(
                 MenuOptions::Resume => next_app_state.set(ApplicationState::InGame),
                 MenuOptions::Exit => {
                     next_app_state.set(ApplicationState::Exit);
-                    next_mode_state.set(ModeState::NotInGame)
+                    next_mode_state.set(ModeState::NotInGame);
                 }
             },
             Interaction::Hovered => {

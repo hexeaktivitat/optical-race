@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, time::Stopwatch};
 
 use crate::{led::LedPos, osc::OscType, pot::PotType, ApplicationState};
 
@@ -10,6 +10,7 @@ pub(super) struct TrackPlugin;
 impl Plugin for TrackPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(ApplicationState::Loading), load_track);
+        app.add_systems(FixedUpdate, tick_track_timer.in_set(TrackSet));
         app.insert_resource(Track {
             bpm: 0.333,
             seq: SAMPLE_SEQ.to_vec(),
@@ -17,7 +18,22 @@ impl Plugin for TrackPlugin {
     }
 }
 
-fn load_track(mut commands: Commands, server: Res<AssetServer>) {}
+#[derive(Component)]
+pub(crate) struct TrackTimer {
+    pub(crate) timer: Stopwatch,
+}
+
+fn tick_track_timer(mut query: Query<&mut TrackTimer>, time: Res<Time>) {
+    for mut track_timer in query.iter_mut() {
+        track_timer.timer.tick(time.delta());
+    }
+}
+
+fn load_track(mut commands: Commands, server: Res<AssetServer>) {
+    commands.spawn(TrackTimer {
+        timer: Stopwatch::new(),
+    });
+}
 
 #[derive(Bundle)]
 struct TrackBundle {

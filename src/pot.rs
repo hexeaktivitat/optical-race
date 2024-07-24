@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     led::LedPos,
     osc::{OscState, OscType},
-    track::Track,
+    track::{Track, TrackTimer},
     ApplicationState, ModeState,
 };
 
@@ -208,37 +208,41 @@ pub(crate) struct CheckNoteEvent(pub(crate) LedPos);
 fn check_note(
     mut ev_check_note: EventReader<CheckNoteEvent>,
     mut track: ResMut<Track>,
-    time: Res<Time<Virtual>>,
+    timer_query: Query<&TrackTimer>,
     pot_active_query: Query<(&PotState, &PotType)>,
     osc_active_query: Query<(&OscState, &OscType)>,
 ) {
     for _ev in ev_check_note.read() {
         if !track.seq.is_empty() {
             let bpm = track.bpm;
-            match &mut *track.seq {
-                [head, tail @ ..] => {
-                    let current_frame = (time.elapsed_seconds_f64() / bpm).floor() as u64;
-                    println!("frame: {} time: {}", current_frame, head.time);
-                    if current_frame >= head.time {
-                        for (p_state, p_type) in pot_active_query.iter() {
-                            if head.note.pot == *p_type && *p_state == PotState::Active {
-                                println!("pot lane was correct");
-                                for (o_state, o_type) in osc_active_query.iter() {
-                                    if head.note.s1 == *o_type && *o_state == OscState::Active {
-                                        println!("osc type correct");
-                                        if current_frame == head.time
-                                            || current_frame <= head.time + 20
-                                        {
-                                            println!("success");
+            for track_timer in timer_query.iter() {
+                match &mut *track.seq {
+                    [head, tail @ ..] => {
+                        let current_frame =
+                            (track_timer.timer.elapsed_secs_f64() / bpm).floor() as u64;
+                        println!("frame: {} time: {}", current_frame, head.time);
+                        if current_frame >= head.time {
+                            for (p_state, p_type) in pot_active_query.iter() {
+                                if head.note.pot == *p_type && *p_state == PotState::Active {
+                                    println!("pot lane was correct");
+                                    for (o_state, o_type) in osc_active_query.iter() {
+                                        if head.note.s1 == *o_type && *o_state == OscState::Active {
+                                            println!("osc type correct");
+                                            if current_frame == head.time
+                                                || current_frame <= head.time + 5
+                                                || current_frame >= (head.time - 5).clamp(5, 65536)
+                                            {
+                                                println!("success");
+                                            }
                                         }
                                     }
                                 }
                             }
+                            track.seq = tail.into();
                         }
-                        track.seq = tail.into();
                     }
+                    _ => unreachable!(),
                 }
-                _ => unreachable!(),
             }
         }
     }
