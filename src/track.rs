@@ -1,6 +1,6 @@
 use bevy::{prelude::*, time::Stopwatch};
 
-use crate::{osc::OscType, pot::PotType, ApplicationState};
+use crate::{led::LedPos, osc::OscType, pot::PotType, ApplicationState};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct TrackSet;
@@ -10,10 +10,7 @@ pub(super) struct TrackPlugin;
 impl Plugin for TrackPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(ApplicationState::Loading), load_track);
-        app.add_systems(
-            FixedUpdate,
-            (tick_track_timer, advance_track).in_set(TrackSet),
-        );
+        app.add_systems(FixedUpdate, tick_track_timer.in_set(TrackSet));
         app.insert_resource(Track {
             bpm: 0.333,
             seq: SAMPLE_SEQ.to_vec(),
@@ -26,15 +23,27 @@ pub(crate) struct TrackTimer {
     pub(crate) timer: Stopwatch,
 }
 
-fn tick_track_timer(mut query: Query<&mut TrackTimer>, time: Res<Time>) {
+fn tick_track_timer(mut query: Query<&mut TrackTimer>, time: Res<Time>, mut track: ResMut<Track>) {
     for mut track_timer in query.iter_mut() {
         track_timer.timer.tick(time.delta());
+        let current_frame = (track_timer.timer.elapsed_secs_f64() / track.bpm).floor() as u64;
+        if !track.seq.is_empty() {
+            match &mut *track.seq {
+                [head, tail @ ..] => {
+                    if current_frame > head.time {
+                        println!("shortening sequence");
+                        track.seq = tail.into();
+                    }
+                }
+                _ => unreachable!(),
+            }
+        }
     }
 }
 
 fn load_track(
     mut commands: Commands,
-    _server: Res<AssetServer>,
+    server: Res<AssetServer>,
     query: Query<Entity, With<TrackTimer>>,
 ) {
     for entity in query.iter() {
@@ -43,22 +52,6 @@ fn load_track(
     commands.spawn(TrackTimer {
         timer: Stopwatch::new(),
     });
-}
-
-fn advance_track(mut track: ResMut<Track>, query: Query<&TrackTimer>) {
-    for track_timer in query.iter() {
-        let current_frame = (track_timer.timer.elapsed_secs_f64() / track.bpm) as u64;
-        if !track.seq.is_empty() {
-            match &mut *track.seq.clone() {
-                [head, tail @ ..] => {
-                    if head.time < current_frame {
-                        track.seq = tail.into();
-                    }
-                }
-                _ => unreachable!(),
-            }
-        }
-    }
 }
 
 #[derive(Bundle)]
@@ -76,7 +69,6 @@ pub(crate) struct Track {
     pub(crate) seq: Vec<Seq>,
 }
 
-#[allow(dead_code)]
 #[derive(Component, Clone)]
 pub(crate) struct Note {
     pub(crate) s1: OscType,
