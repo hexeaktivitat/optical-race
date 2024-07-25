@@ -4,7 +4,7 @@ use crate::{
     led::LedPos,
     osc::{OscState, OscType},
     track::{Track, TrackTimer},
-    ApplicationState, ModeState,
+    ApplicationState, ModeState, Score,
 };
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
@@ -107,6 +107,7 @@ fn pot_input(
     mut query: Query<(Entity, &PotType, &mut PotState, &mut Handle<Image>), With<PotTag>>,
     server: Res<AssetServer>,
     mut _ev_activate_pot: EventWriter<PotActiveEvent>,
+    mut ev_check_note: EventWriter<CheckNoteEvent>,
 ) {
     for (_entity, pot_type, mut state, mut texture) in query.iter_mut() {
         for key in keys.get_just_pressed() {
@@ -115,30 +116,35 @@ fn pot_input(
                     if pot_type == &PotType::PotJ {
                         *state = PotState::Active;
                         *texture = server.load("pot_j_on.png");
+                        ev_check_note.send(CheckNoteEvent);
                     }
                 }
                 KeyCode::KeyI => {
                     if pot_type == &PotType::PotI {
                         *state = PotState::Active;
                         *texture = server.load("pot_i_on.png");
+                        ev_check_note.send(CheckNoteEvent);
                     }
                 }
                 KeyCode::KeyK => {
                     if pot_type == &PotType::PotK {
                         *state = PotState::Active;
                         *texture = server.load("pot_k_on.png");
+                        ev_check_note.send(CheckNoteEvent);
                     }
                 }
                 KeyCode::KeyO => {
                     if pot_type == &PotType::PotO {
                         *state = PotState::Active;
                         *texture = server.load("pot_o_on.png");
+                        ev_check_note.send(CheckNoteEvent);
                     }
                 }
                 KeyCode::KeyL => {
                     if pot_type == &PotType::PotL {
                         *state = PotState::Active;
                         *texture = server.load("pot_l_on.png");
+                        ev_check_note.send(CheckNoteEvent);
                     }
                 }
                 _ => {}
@@ -203,7 +209,7 @@ fn _activate_pot(
 
 #[allow(dead_code)]
 #[derive(Event)]
-pub(crate) struct CheckNoteEvent(pub(crate) LedPos);
+pub(crate) struct CheckNoteEvent;
 
 fn check_note(
     mut ev_check_note: EventReader<CheckNoteEvent>,
@@ -211,6 +217,7 @@ fn check_note(
     timer_query: Query<&TrackTimer>,
     pot_active_query: Query<(&PotState, &PotType)>,
     osc_active_query: Query<(&OscState, &OscType)>,
+    mut score: ResMut<Score>,
 ) {
     for _ev in ev_check_note.read() {
         if !track.seq.is_empty() {
@@ -221,24 +228,27 @@ fn check_note(
                         let current_frame =
                             (track_timer.timer.elapsed_secs_f64() / bpm).floor() as u64;
                         println!("frame: {} time: {}", current_frame, head.time);
-                        if current_frame >= head.time {
+                        if current_frame == head.time {
                             for (p_state, p_type) in pot_active_query.iter() {
                                 if head.note.pot == *p_type && *p_state == PotState::Active {
-                                    println!("pot lane was correct");
                                     for (o_state, o_type) in osc_active_query.iter() {
-                                        if head.note.s1 == *o_type && *o_state == OscState::Active {
-                                            println!("osc type correct");
-                                            if current_frame == head.time
+                                        if head.note.s1 == *o_type
+                                            && *o_state == OscState::Active
+                                            && (current_frame == head.time
                                                 || current_frame <= head.time + 5
-                                                || current_frame >= (head.time - 5).clamp(5, 65536)
-                                            {
-                                                println!("success");
-                                            }
+                                                || current_frame >= (head.time - 5).clamp(5, 65536))
+                                        {
+                                            println!("success");
+                                            score.value += 1;
                                         }
                                     }
                                 }
                             }
                             track.seq = tail.into();
+                        } else if current_frame > head.time {
+                            track.seq = tail.into();
+                        } else {
+                            println!("invalid timing");
                         }
                     }
                     _ => unreachable!(),

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{pot::CheckNoteEvent, ApplicationState, ModeState};
+use crate::{pot::CheckNoteEvent, track::TrackTimer, ApplicationState, ModeState};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct LedSet;
@@ -57,7 +57,7 @@ fn tick_leds(
                 if *pos == tick.next_led {
                     *state = LedState::On;
                     *tex = on_tex;
-                    ev_check_note.send(CheckNoteEvent(*pos)); // check if there is an associated track setting with this
+                    // ev_check_note.send(CheckNoteEvent(*pos)); // check if there is an associated track setting with this
                 }
             }
             tick.next_led = match tick.next_led {

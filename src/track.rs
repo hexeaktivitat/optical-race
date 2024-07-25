@@ -29,7 +29,14 @@ fn tick_track_timer(mut query: Query<&mut TrackTimer>, time: Res<Time>) {
     }
 }
 
-fn load_track(mut commands: Commands, server: Res<AssetServer>) {
+fn load_track(
+    mut commands: Commands,
+    server: Res<AssetServer>,
+    query: Query<Entity, With<TrackTimer>>,
+) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
+    }
     commands.spawn(TrackTimer {
         timer: Stopwatch::new(),
     });
@@ -73,39 +80,7 @@ const SAMPLE_SEQ: [Seq; 8] = [
         },
     },
     Seq {
-        time: 15,
-        note: Note {
-            s1: OscType::Sine,
-            s2: None,
-            pot: PotType::PotJ,
-        },
-    },
-    Seq {
-        time: 25,
-        note: Note {
-            s1: OscType::Sine,
-            s2: None,
-            pot: PotType::PotJ,
-        },
-    },
-    Seq {
         time: 35,
-        note: Note {
-            s1: OscType::Sine,
-            s2: None,
-            pot: PotType::PotJ,
-        },
-    },
-    Seq {
-        time: 45,
-        note: Note {
-            s1: OscType::Sine,
-            s2: None,
-            pot: PotType::PotJ,
-        },
-    },
-    Seq {
-        time: 55,
         note: Note {
             s1: OscType::Sine,
             s2: None,
@@ -121,7 +96,39 @@ const SAMPLE_SEQ: [Seq; 8] = [
         },
     },
     Seq {
-        time: 75,
+        time: 105,
+        note: Note {
+            s1: OscType::Sine,
+            s2: None,
+            pot: PotType::PotJ,
+        },
+    },
+    Seq {
+        time: 155,
+        note: Note {
+            s1: OscType::Sine,
+            s2: None,
+            pot: PotType::PotJ,
+        },
+    },
+    Seq {
+        time: 205,
+        note: Note {
+            s1: OscType::Sine,
+            s2: None,
+            pot: PotType::PotJ,
+        },
+    },
+    Seq {
+        time: 255,
+        note: Note {
+            s1: OscType::Sine,
+            s2: None,
+            pot: PotType::PotJ,
+        },
+    },
+    Seq {
+        time: 305,
         note: Note {
             s1: OscType::Sine,
             s2: None,

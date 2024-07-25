@@ -60,9 +60,15 @@ impl Plugin for OpticalRacePlugin {
                 .run_if(in_state(PauseState::Unpaused)),
         );
 
+        app.add_systems(
+            Update,
+            score_display.run_if(in_state(ApplicationState::InGame)),
+        );
+
         // resources
         // app.insert_resource(ResourceStruct {})
         // app.insert_resource(Time::<Fixed>::from_hz(64.0));
+        app.insert_resource(Score { value: 0 });
 
         // plugins
         app.add_plugins((
@@ -81,6 +87,39 @@ impl Plugin for OpticalRacePlugin {
 
         // console comands
     }
+}
+
+#[derive(Resource)]
+pub(crate) struct Score {
+    value: u64,
+}
+
+#[derive(Component)]
+struct ScoreDispTag;
+
+fn score_display(
+    mut commands: Commands,
+    score: Res<Score>,
+    query: Query<Entity, With<ScoreDispTag>>,
+) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
+    }
+    let score_disp = format!("SCORE: {}", score.value);
+    commands.spawn((
+        Text2dBundle {
+            text: Text::from_section(
+                score_disp,
+                TextStyle {
+                    font_size: 32.,
+                    ..default()
+                },
+            ),
+            transform: Transform::from_translation(Vec3::new(256., 256., 104.)),
+            ..default()
+        },
+        ScoreDispTag,
+    ));
 }
 
 fn exit_game(mut commands: Commands, window: Query<Entity, With<Window>>) {
