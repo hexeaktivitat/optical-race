@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{pot::CheckNoteEvent, track::AdvanceIterationEvent, ApplicationState, ModeState};
+use crate::{pot::CheckNoteEvent, ApplicationState, ModeState};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct LedSet;
@@ -45,7 +45,6 @@ fn tick_leds(
     mut query: Query<(&mut LedState, &LedPos, &mut Handle<Image>)>,
     time: Res<Time>,
     mut _ev_check_note: EventWriter<CheckNoteEvent>,
-    mut ev_advance_iter: EventWriter<AdvanceIterationEvent>,
 ) {
     for mut tick in timer_query.iter_mut() {
         tick.timer.tick(time.delta());

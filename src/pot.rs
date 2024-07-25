@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
 use crate::{
-    led::LedPos,
     osc::{OscState, OscType},
     track::{Track, TrackTimer},
     ApplicationState, ModeState, Score,
@@ -214,7 +213,7 @@ pub(crate) struct CheckNoteEvent;
 #[allow(clippy::comparison_chain)]
 fn check_note(
     mut ev_check_note: EventReader<CheckNoteEvent>,
-    mut track: ResMut<Track>,
+    track: ResMut<Track>,
     timer_query: Query<&TrackTimer>,
     pot_active_query: Query<(&PotState, &PotType)>,
     osc_active_query: Query<(&OscState, &OscType)>,

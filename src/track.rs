@@ -50,7 +50,7 @@ fn tick_track_timer(mut query: Query<&mut TrackTimer>, time: Res<Time>, mut trac
 
 fn load_track(
     mut commands: Commands,
-    server: Res<AssetServer>,
+    _server: Res<AssetServer>,
     query: Query<Entity, With<TrackTimer>>,
 ) {
     for entity in query.iter() {
@@ -78,6 +78,7 @@ pub(crate) struct Track {
     pub(crate) seq: Vec<Seq>,
 }
 
+#[allow(dead_code)]
 #[derive(Component, Clone)]
 pub(crate) struct Note {
     pub(crate) s1: OscType,
@@ -170,7 +171,7 @@ const SAMPLE_SEQ_TWO: [Seq; 8] = [
     },
 ];
 
-const SAMPLE_SEQ: [Seq; 8] = [
+const _SAMPLE_SEQ: [Seq; 8] = [
     Seq {
         time: 5,
         note: Note {
