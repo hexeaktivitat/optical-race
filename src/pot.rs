@@ -1,7 +1,8 @@
+use std::cmp::Ordering;
+
 use bevy::prelude::*;
 
 use crate::{
-    led::LedPos,
     osc::{OscState, OscType},
     track::{Track, TrackTimer},
     ApplicationState, ModeState, Score,
@@ -213,42 +214,39 @@ pub(crate) struct CheckNoteEvent;
 
 fn check_note(
     mut ev_check_note: EventReader<CheckNoteEvent>,
-    mut track: ResMut<Track>,
+    track: ResMut<Track>,
     timer_query: Query<&TrackTimer>,
-    pot_active_query: Query<(&PotState, &PotType)>,
-    osc_active_query: Query<(&OscState, &OscType)>,
+    active_query: Query<(&PotState, &PotType, &OscState, &OscType)>,
     mut score: ResMut<Score>,
 ) {
     for _ev in ev_check_note.read() {
         if !track.seq.is_empty() {
             let bpm = track.bpm;
             for track_timer in timer_query.iter() {
-                match &mut *track.seq {
-                    [head, tail @ ..] => {
+                match &mut *track.seq.clone() {
+                    [head, _tail @ ..] => {
                         let current_frame =
                             (track_timer.timer.elapsed_secs_f64() / bpm).floor() as u64;
                         println!("frame: {} time: {}", current_frame, head.time);
-                        if current_frame == head.time {
-                            for (p_state, p_type) in pot_active_query.iter() {
-                                if head.note.pot == *p_type && *p_state == PotState::Active {
-                                    for (o_state, o_type) in osc_active_query.iter() {
-                                        if head.note.s1 == *o_type
-                                            && *o_state == OscState::Active
-                                            && (current_frame == head.time
-                                                || current_frame <= head.time + 5
-                                                || current_frame >= (head.time - 5).clamp(5, 65536))
-                                        {
-                                            println!("success");
-                                            score.value += 1;
-                                        }
+                        for (p_state, p_type, o_state, o_type) in active_query.iter() {
+                            match current_frame.cmp(&head.time) {
+                                Ordering::Equal => {
+                                    if head.note.pot == *p_type
+                                        && *p_state == PotState::Active
+                                        && head.note.s1 == *o_type
+                                        && *o_state == OscState::Active
+                                    {
+                                        println!("success");
+                                        score.value += 1;
                                     }
                                 }
+                                Ordering::Greater => {
+                                    println!("invalid timing");
+                                }
+                                Ordering::Less => {
+                                    println!("too early timing");
+                                }
                             }
-                            track.seq = tail.into();
-                        } else if current_frame > head.time {
-                            track.seq = tail.into();
-                        } else {
-                            println!("invalid timing");
                         }
                     }
                     _ => unreachable!(),
