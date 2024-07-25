@@ -35,10 +35,6 @@ fn tick_track_timer(mut query: Query<&mut TrackTimer>, time: Res<Time>, mut trac
         let current_frame = (track_timer.timer.elapsed_secs_f64() / track.bpm).floor() as u64;
         let current_time = track.seq[track.pos].time + (8 * track.iteration);
         if current_frame > current_time {
-            println!(
-                "current frame {} current time {}",
-                current_frame, current_time
-            );
             track.pos += 1;
             if track.pos > 7 {
                 track.pos = 0;
@@ -52,9 +48,16 @@ fn load_track(
     mut commands: Commands,
     _server: Res<AssetServer>,
     query: Query<Entity, With<TrackTimer>>,
+    mut track: ResMut<Track>,
 ) {
     for entity in query.iter() {
         commands.entity(entity).despawn();
+    }
+    if track.pos != 0 {
+        track.pos = 0;
+    }
+    if track.iteration != 0 {
+        track.iteration = 0;
     }
     commands.spawn(TrackTimer {
         timer: Stopwatch::new(),
