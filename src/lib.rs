@@ -8,7 +8,7 @@ use menu::{MenuPlugin, MenuSet, PauseSet};
 use osc::{OscPlugin, OscSet};
 // use player::{PlayerPlugin, PlayerSet};
 use pot::{PotPlugin, PotSet};
-use track::TrackPlugin;
+use track::{TrackPlugin, TrackSet};
 
 mod input;
 mod loading;
@@ -55,9 +55,14 @@ impl Plugin for OpticalRacePlugin {
 
         app.configure_sets(
             FixedUpdate,
-            LedSet
-                .run_if(in_state(ApplicationState::InGame))
-                .run_if(in_state(PauseState::Unpaused)),
+            (
+                LedSet
+                    .run_if(in_state(ApplicationState::InGame))
+                    .run_if(in_state(PauseState::Unpaused)),
+                TrackSet
+                    .run_if(in_state(ApplicationState::InGame))
+                    .run_if(in_state(PauseState::Unpaused)),
+            ),
         );
 
         app.add_systems(
@@ -68,7 +73,10 @@ impl Plugin for OpticalRacePlugin {
         // resources
         // app.insert_resource(ResourceStruct {})
         // app.insert_resource(Time::<Fixed>::from_hz(64.0));
-        app.insert_resource(Score { value: 0 });
+        app.insert_resource(Score {
+            value: 0,
+            updated: true,
+        });
 
         // plugins
         app.add_plugins((
@@ -91,7 +99,8 @@ impl Plugin for OpticalRacePlugin {
 
 #[derive(Resource)]
 pub(crate) struct Score {
-    value: u64,
+    pub(crate) value: u64,
+    pub(crate) updated: bool,
 }
 
 #[derive(Component)]
@@ -99,27 +108,30 @@ struct ScoreDispTag;
 
 fn score_display(
     mut commands: Commands,
-    score: Res<Score>,
+    mut score: ResMut<Score>,
     query: Query<Entity, With<ScoreDispTag>>,
 ) {
-    for entity in query.iter() {
-        commands.entity(entity).despawn();
+    if score.updated {
+        for entity in query.iter() {
+            commands.entity(entity).despawn();
+        }
+        let score_disp = format!("SCORE: {}", score.value);
+        commands.spawn((
+            Text2dBundle {
+                text: Text::from_section(
+                    score_disp,
+                    TextStyle {
+                        font_size: 32.,
+                        ..default()
+                    },
+                ),
+                transform: Transform::from_translation(Vec3::new(256., 256., 104.)),
+                ..default()
+            },
+            ScoreDispTag,
+        ));
+        score.updated = false;
     }
-    let score_disp = format!("SCORE: {}", score.value);
-    commands.spawn((
-        Text2dBundle {
-            text: Text::from_section(
-                score_disp,
-                TextStyle {
-                    font_size: 32.,
-                    ..default()
-                },
-            ),
-            transform: Transform::from_translation(Vec3::new(256., 256., 104.)),
-            ..default()
-        },
-        ScoreDispTag,
-    ));
 }
 
 fn exit_game(mut commands: Commands, window: Query<Entity, With<Window>>) {

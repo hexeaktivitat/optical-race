@@ -16,7 +16,7 @@ impl Plugin for PotPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(ApplicationState::Loading), load_pots.in_set(PotSet));
         app.add_systems(Update, pot_input.in_set(PotSet));
-        app.add_systems(FixedUpdate, check_note.in_set(PotSet));
+        app.add_systems(FixedFirst, check_note.in_set(PotSet));
         app.add_systems(OnEnter(ModeState::NotInGame), unload_pots.in_set(PotSet));
 
         app.add_event::<PotActiveEvent>();
@@ -224,35 +224,36 @@ fn check_note(
         if !track.seq.is_empty() {
             let bpm = track.bpm;
             for track_timer in timer_query.iter() {
-                match &mut *track.seq {
-                    [head, tail @ ..] => {
-                        let current_frame =
-                            (track_timer.timer.elapsed_secs_f64() / bpm).floor() as u64;
-                        println!("frame: {} time: {}", current_frame, head.time);
-                        if current_frame == head.time {
-                            for (p_state, p_type) in pot_active_query.iter() {
-                                if head.note.pot == *p_type && *p_state == PotState::Active {
-                                    for (o_state, o_type) in osc_active_query.iter() {
-                                        if head.note.s1 == *o_type && *o_state == OscState::Active
-                                        // && (current_frame == head.time
-                                        //     || current_frame <= head.time + 5
-                                        //     || current_frame >= (head.time - 5).clamp(5, 65536))
-                                        {
-                                            println!("success");
-                                            score.value += 1;
-                                        }
-                                    }
+                let current_time = track.seq[track.pos].time + (track.iteration * 8);
+                let current_frame = (track_timer.timer.elapsed_secs_f64() / bpm).floor() as u64;
+                println!("frame: {} time: {}", current_frame, current_time);
+                if current_frame == current_time {
+                    for (p_state, p_type) in pot_active_query.iter() {
+                        if track.seq[track.pos].note.pot == *p_type && *p_state == PotState::Active
+                        {
+                            for (o_state, o_type) in osc_active_query.iter() {
+                                if track.seq[track.pos].note.s1 == *o_type
+                                    && *o_state == OscState::Active
+                                // && (current_frame == head.time
+                                //     || current_frame <= head.time + 5
+                                //     || current_frame >= (head.time - 5).clamp(5, 65536))
+                                {
+                                    println!("success");
+                                    score.value += 1;
+                                    score.updated = true;
                                 }
                             }
-                            track.seq = tail.into();
-                        } else if current_frame > head.time {
-                            println!("too late");
-                            track.seq = tail.into();
-                        } else {
-                            println!("invalid timing");
                         }
                     }
-                    _ => unreachable!(),
+                    // track.pos += 1;
+                    // if track.pos > 7 {
+                    //     track.pos = 0;
+                    //     track.iteration += 1;
+                    // }
+                } else if current_frame > current_time {
+                    println!("too late");
+                } else {
+                    println!("invalid timing");
                 }
             }
         }
@@ -268,7 +269,7 @@ fn unload_pots(mut commands: Commands, query: Query<Entity, With<PotTag>>) {
 #[derive(Component)]
 struct PotTag;
 
-#[derive(Component, PartialEq, Eq, Clone, Copy)]
+#[derive(Component, PartialEq, Eq, Clone, Copy, Debug)]
 pub(crate) enum PotType {
     PotJ,
     PotI,

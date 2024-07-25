@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
-use crate::{pot::CheckNoteEvent, ApplicationState, ModeState};
+use crate::{pot::CheckNoteEvent, track::AdvanceIterationEvent, ApplicationState, ModeState};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct LedSet;
@@ -27,14 +27,16 @@ struct LedTick {
     next_led: LedPos,
 }
 
-fn init_led_timer(mut commands: Commands) {
-    let timer = LedTick {
-        timer: Timer::new(Duration::from_millis(333), TimerMode::Repeating),
-        next_led: LedPos::B,
-    };
+fn init_led_timer(mut commands: Commands, query: Query<Entity, With<LedTick>>) {
+    if query.is_empty() {
+        let timer = LedTick {
+            timer: Timer::new(Duration::from_millis(333), TimerMode::Repeating),
+            next_led: LedPos::B,
+        };
 
-    println!("timer spawned");
-    commands.spawn(timer);
+        println!("timer spawned");
+        commands.spawn(timer);
+    }
 }
 
 fn tick_leds(
@@ -43,6 +45,7 @@ fn tick_leds(
     mut query: Query<(&mut LedState, &LedPos, &mut Handle<Image>)>,
     time: Res<Time>,
     mut _ev_check_note: EventWriter<CheckNoteEvent>,
+    mut ev_advance_iter: EventWriter<AdvanceIterationEvent>,
 ) {
     for mut tick in timer_query.iter_mut() {
         tick.timer.tick(time.delta());
