@@ -15,6 +15,16 @@ impl Plugin for OscPlugin {
     }
 }
 
+pub(crate) fn fetch_osc_tex(osc_type: OscType) -> String {
+    match osc_type {
+        OscType::Sine => "sine_tile.png",
+        OscType::Triangle => "triangle_tile.png",
+        OscType::Square => "square_tile.png",
+        OscType::Sawtooth => "saw_tile.png",
+    }
+    .into()
+}
+
 fn load_oscs(
     mut commands: Commands,
     server: Res<AssetServer>,

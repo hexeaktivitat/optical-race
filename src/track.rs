@@ -1,6 +1,10 @@
 use bevy::{prelude::*, time::Stopwatch};
 
-use crate::{osc::OscType, pot::PotType, ApplicationState};
+use crate::{
+    osc::{fetch_osc_tex, OscType},
+    pot::{fetch_pot_tex, PotType},
+    ApplicationState,
+};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct TrackSet;
@@ -44,12 +48,50 @@ fn tick_track_timer(mut query: Query<&mut TrackTimer>, time: Res<Time>, mut trac
     }
 }
 
+#[derive(Component)]
+enum TrackPos {
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+}
+
+#[derive(Bundle)]
+struct TrackOscBundle {
+    tag: TrackOscTag,
+    sprite: SpriteBundle,
+    pos: TrackPos,
+}
+
+#[derive(Component)]
+struct TrackOscTag;
+
+#[derive(Bundle)]
+struct TrackPotBundle {
+    tag: TrackPotTag,
+    sprite: SpriteBundle,
+    pos: TrackPos,
+}
+
+#[derive(Component)]
+struct TrackPotTag;
+
 fn load_track(
     mut commands: Commands,
-    _server: Res<AssetServer>,
+    server: Res<AssetServer>,
     query: Query<Entity, With<TrackTimer>>,
     mut track: ResMut<Track>,
 ) {
+    let origin_x = -150.;
+    let origin_y = 150.;
+    let osc_layer = 0.;
+    let pot_layer = 5.;
+    let offset = 32.;
+
     for entity in query.iter() {
         commands.entity(entity).despawn();
     }
@@ -59,6 +101,243 @@ fn load_track(
     if track.iteration != 0 {
         track.iteration = 0;
     }
+
+    let track_osc_a = (TrackOscBundle {
+        tag: TrackOscTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(origin_x, origin_y, osc_layer)),
+
+            texture: server.load(fetch_osc_tex(track.seq[0].note.s1)),
+            ..default()
+        },
+        pos: TrackPos::A,
+    },);
+    let track_pot_a = TrackPotBundle {
+        tag: TrackPotTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x,
+                origin_y + offset,
+                pot_layer,
+            )),
+            texture: server.load(fetch_pot_tex(track.seq[0].note.pot)),
+            ..default()
+        },
+        pos: TrackPos::A,
+    };
+    commands.spawn(track_osc_a);
+    commands.spawn(track_pot_a);
+
+    let track_osc_b = (TrackOscBundle {
+        tag: TrackOscTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 1.,
+                origin_y,
+                osc_layer,
+            )),
+
+            texture: server.load(fetch_osc_tex(track.seq[1].note.s1)),
+            ..default()
+        },
+        pos: TrackPos::B,
+    },);
+    let track_pot_b = TrackPotBundle {
+        tag: TrackPotTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 1.,
+                origin_y + offset,
+                pot_layer,
+            )),
+            texture: server.load(fetch_pot_tex(track.seq[1].note.pot)),
+            ..default()
+        },
+        pos: TrackPos::B,
+    };
+    commands.spawn(track_osc_b);
+    commands.spawn(track_pot_b);
+
+    let track_osc_c = (TrackOscBundle {
+        tag: TrackOscTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 2.,
+                origin_y,
+                osc_layer,
+            )),
+
+            texture: server.load(fetch_osc_tex(track.seq[2].note.s1)),
+            ..default()
+        },
+        pos: TrackPos::C,
+    },);
+    let track_pot_c = TrackPotBundle {
+        tag: TrackPotTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 2.,
+                origin_y + offset,
+                pot_layer,
+            )),
+            texture: server.load(fetch_pot_tex(track.seq[2].note.pot)),
+            ..default()
+        },
+        pos: TrackPos::C,
+    };
+    commands.spawn(track_osc_c);
+    commands.spawn(track_pot_c);
+
+    let track_osc_d = (TrackOscBundle {
+        tag: TrackOscTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 3.,
+                origin_y,
+                osc_layer,
+            )),
+
+            texture: server.load(fetch_osc_tex(track.seq[3].note.s1)),
+            ..default()
+        },
+        pos: TrackPos::D,
+    },);
+    let track_pot_d = TrackPotBundle {
+        tag: TrackPotTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 3.,
+                origin_y + offset,
+                pot_layer,
+            )),
+            texture: server.load(fetch_pot_tex(track.seq[3].note.pot)),
+            ..default()
+        },
+        pos: TrackPos::D,
+    };
+    commands.spawn(track_osc_d);
+    commands.spawn(track_pot_d);
+
+    let track_osc_e = (TrackOscBundle {
+        tag: TrackOscTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 4.,
+                origin_y,
+                osc_layer,
+            )),
+
+            texture: server.load(fetch_osc_tex(track.seq[4].note.s1)),
+            ..default()
+        },
+        pos: TrackPos::E,
+    },);
+    let track_pot_e = TrackPotBundle {
+        tag: TrackPotTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 4.,
+                origin_y + offset,
+                pot_layer,
+            )),
+            texture: server.load(fetch_pot_tex(track.seq[4].note.pot)),
+            ..default()
+        },
+        pos: TrackPos::E,
+    };
+    commands.spawn(track_osc_e);
+    commands.spawn(track_pot_e);
+
+    let track_osc_f = (TrackOscBundle {
+        tag: TrackOscTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 5.,
+                origin_y,
+                osc_layer,
+            )),
+
+            texture: server.load(fetch_osc_tex(track.seq[5].note.s1)),
+            ..default()
+        },
+        pos: TrackPos::F,
+    },);
+    let track_pot_f = TrackPotBundle {
+        tag: TrackPotTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 5.,
+                origin_y + offset,
+                pot_layer,
+            )),
+            texture: server.load(fetch_pot_tex(track.seq[5].note.pot)),
+            ..default()
+        },
+        pos: TrackPos::F,
+    };
+    commands.spawn(track_osc_f);
+    commands.spawn(track_pot_f);
+
+    let track_osc_g = (TrackOscBundle {
+        tag: TrackOscTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 6.,
+                origin_y,
+                osc_layer,
+            )),
+
+            texture: server.load(fetch_osc_tex(track.seq[6].note.s1)),
+            ..default()
+        },
+        pos: TrackPos::G,
+    },);
+    let track_pot_g = TrackPotBundle {
+        tag: TrackPotTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 6.,
+                origin_y + offset,
+                pot_layer,
+            )),
+            texture: server.load(fetch_pot_tex(track.seq[6].note.pot)),
+            ..default()
+        },
+        pos: TrackPos::G,
+    };
+    commands.spawn(track_osc_g);
+    commands.spawn(track_pot_g);
+
+    let track_osc_h = (TrackOscBundle {
+        tag: TrackOscTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 7.,
+                origin_y,
+                osc_layer,
+            )),
+
+            texture: server.load(fetch_osc_tex(track.seq[7].note.s1)),
+            ..default()
+        },
+        pos: TrackPos::H,
+    },);
+    let track_pot_h = TrackPotBundle {
+        tag: TrackPotTag,
+        sprite: SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                origin_x + offset * 7.,
+                origin_y + offset,
+                pot_layer,
+            )),
+            texture: server.load(fetch_pot_tex(track.seq[7].note.pot)),
+            ..default()
+        },
+        pos: TrackPos::H,
+    };
+    commands.spawn(track_osc_h);
+    commands.spawn(track_pot_h);
+
     commands.spawn(TrackTimer {
         timer: Stopwatch::new(),
     });

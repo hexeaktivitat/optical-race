@@ -31,6 +31,17 @@ struct PotBundle {
     sprite: SpriteBundle,
 }
 
+pub(crate) fn fetch_pot_tex(pot_type: PotType) -> String {
+    match pot_type {
+        PotType::PotJ => "pot_j_on.png",
+        PotType::PotI => "pot_i_on.png",
+        PotType::PotK => "pot_k_on.png",
+        PotType::PotO => "pot_o_on.png",
+        PotType::PotL => "pot_l_on.png",
+    }
+    .into()
+}
+
 fn load_pots(mut commands: Commands, server: Res<AssetServer>) {
     let origin_x = 0.;
     let origin_y = 0.;
