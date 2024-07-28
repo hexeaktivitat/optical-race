@@ -21,10 +21,10 @@ env:
   # The base filename of the binary produced by `cargo build`.
   BINARY: optical_race
   # The name to use for the packaged application produced by this workflow.
-  PACKAGE_NAME: optical_race
+  PACKAGE_NAME: tangerine_jam
   # The itch.io page to upload to, in the format: `user-name/project-name`.
   # Comment this out to disable.
-  ITCH_TARGET: hexeaktivitat/optical-race
+  ITCH_TARGET: hexeaktivitat/tangerine-jam
   # The organization or author that owns the rights to the game.
   OWNER: hexeaktivitat
   # The path to the assets directory.
