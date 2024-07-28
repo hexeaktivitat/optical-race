@@ -16,6 +16,7 @@ impl Plugin for PotPlugin {
         app.add_systems(OnEnter(ApplicationState::Loading), load_pots.in_set(PotSet));
         app.add_systems(Update, pot_input.in_set(PotSet));
         app.add_systems(FixedFirst, check_note.in_set(PotSet));
+        app.add_systems(FixedUpdate, activate_pot.in_set(PotSet));
         app.add_systems(OnEnter(ModeState::NotInGame), unload_pots.in_set(PotSet));
 
         app.add_event::<PotActiveEvent>();
@@ -116,7 +117,7 @@ fn pot_input(
     keys: Res<ButtonInput<KeyCode>>,
     mut query: Query<(Entity, &PotType, &mut PotState, &mut Handle<Image>), With<PotTag>>,
     server: Res<AssetServer>,
-    mut _ev_activate_pot: EventWriter<PotActiveEvent>,
+    mut ev_activate_pot: EventWriter<PotActiveEvent>,
     mut ev_check_note: EventWriter<CheckNoteEvent>,
 ) {
     for (_entity, pot_type, mut state, mut texture) in query.iter_mut() {
@@ -127,6 +128,7 @@ fn pot_input(
                         *state = PotState::Active;
                         *texture = server.load("pot_j_on.png");
                         ev_check_note.send(CheckNoteEvent);
+                        ev_activate_pot.send(PotActiveEvent(*pot_type));
                     }
                 }
                 KeyCode::KeyI => {
@@ -134,6 +136,7 @@ fn pot_input(
                         *state = PotState::Active;
                         *texture = server.load("pot_i_on.png");
                         ev_check_note.send(CheckNoteEvent);
+                        ev_activate_pot.send(PotActiveEvent(*pot_type));
                     }
                 }
                 KeyCode::KeyK => {
@@ -141,6 +144,7 @@ fn pot_input(
                         *state = PotState::Active;
                         *texture = server.load("pot_k_on.png");
                         ev_check_note.send(CheckNoteEvent);
+                        ev_activate_pot.send(PotActiveEvent(*pot_type));
                     }
                 }
                 KeyCode::KeyO => {
@@ -148,6 +152,7 @@ fn pot_input(
                         *state = PotState::Active;
                         *texture = server.load("pot_o_on.png");
                         ev_check_note.send(CheckNoteEvent);
+                        ev_activate_pot.send(PotActiveEvent(*pot_type));
                     }
                 }
                 KeyCode::KeyL => {
@@ -155,6 +160,7 @@ fn pot_input(
                         *state = PotState::Active;
                         *texture = server.load("pot_l_on.png");
                         ev_check_note.send(CheckNoteEvent);
+                        ev_activate_pot.send(PotActiveEvent(*pot_type));
                     }
                 }
                 _ => {}
@@ -202,17 +208,33 @@ fn pot_input(
 #[derive(Event)]
 struct PotActiveEvent(PotType);
 
-fn _activate_pot(
+fn activate_pot(
     mut ev_activate_pot: EventReader<PotActiveEvent>,
-    mut _query: Query<(&PotType, &mut PotState, &mut Handle<Image>), With<PotTag>>,
+    osc_query: Query<(&OscType, &OscState)>,
+    mut commands: Commands,
+    server: Res<AssetServer>,
 ) {
-    for ev in ev_activate_pot.read() {
-        match ev.0 {
-            PotType::PotJ => todo!(),
-            PotType::PotI => todo!(),
-            PotType::PotK => todo!(),
-            PotType::PotO => todo!(),
-            PotType::PotL => todo!(),
+    for pot_ev in ev_activate_pot.read() {
+        for (o_type, o_state) in osc_query.iter() {
+            if *o_state == OscState::Active {
+                let osc = match o_type {
+                    OscType::Sine => "sine_".to_string(),
+                    OscType::Triangle => "triangle_".to_string(),
+                    OscType::Square => "square_".to_string(),
+                    OscType::Sawtooth => "saw_".to_string(),
+                };
+                let pot = match pot_ev.0 {
+                    PotType::PotJ => "a.ogg".to_string(),
+                    PotType::PotI => "b.ogg".to_string(),
+                    PotType::PotK => "c.ogg".to_string(),
+                    PotType::PotO => "d.ogg".to_string(),
+                    PotType::PotL => "e.ogg".to_string(),
+                };
+                commands.spawn(AudioBundle {
+                    source: server.load(format!("{}{}", osc, pot)),
+                    ..default()
+                });
+            }
         }
     }
 }
