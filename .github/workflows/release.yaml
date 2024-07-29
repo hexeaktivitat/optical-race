@@ -19,7 +19,7 @@ on:
 # Configure constants for this workflow.
 env:
   # The base filename of the binary produced by `cargo build`.
-  BINARY: optical_race
+  BINARY: tangerine_jam
   # The name to use for the packaged application produced by this workflow.
   PACKAGE_NAME: tangerine_jam
   # The itch.io page to upload to, in the format: `user-name/project-name`.
