@@ -2,7 +2,7 @@ use bevy::asset::AssetMetaCheck;
 use bevy::audio::{AudioPlugin, Volume};
 use bevy::prelude::*;
 
-use optical_race::OpticalRacePlugin;
+use tangerine_jam::OpticalRacePlugin;
 
 fn main() {
     App::new()

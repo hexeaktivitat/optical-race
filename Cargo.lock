@@ -2938,18 +2938,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
-name = "optical_race"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "log",
- "rand",
- "serde",
- "serde_json",
- "tiled",
-]
-
-[[package]]
 name = "orbclient"
 version = "0.3.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3505,6 +3493,18 @@ dependencies = [
  "num-traits",
  "serde",
  "slotmap",
+]
+
+[[package]]
+name = "tangerine_jam"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "log",
+ "rand",
+ "serde",
+ "serde_json",
+ "tiled",
 ]
 
 [[package]]
