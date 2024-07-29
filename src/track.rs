@@ -1,8 +1,9 @@
 use bevy::{prelude::*, time::Stopwatch};
 
+#[allow(unused_imports)]
 use crate::{
     osc::{fetch_osc_tex, OscType},
-    pot::{fetch_pot_tex, PotType},
+    pot::{fetch_pot_tex, PotActiveEvent, PotType},
     ApplicationState,
 };
 
@@ -14,9 +15,11 @@ pub(super) struct TrackPlugin;
 impl Plugin for TrackPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(ApplicationState::Loading), load_track);
+        app.add_systems(OnEnter(ApplicationState::Freeform), load_track);
+        // app.add_systems(Update, start_playback.in_set(TrackSet));
         app.add_systems(
             FixedUpdate,
-            (tick_track_timer, advance_iteration).in_set(TrackSet),
+            (tick_track_timer, advance_iteration, start_playback).in_set(TrackSet),
         );
         app.insert_resource(Track {
             bpm: 0.333,
@@ -33,7 +36,17 @@ pub(crate) struct TrackTimer {
     pub(crate) timer: Stopwatch,
 }
 
-fn tick_track_timer(mut query: Query<&mut TrackTimer>, time: Res<Time>, mut track: ResMut<Track>) {
+#[derive(Component)]
+struct StartDelayTimer {
+    timer: Stopwatch,
+}
+
+fn tick_track_timer(
+    mut query: Query<&mut TrackTimer>,
+    time: Res<Time>,
+    mut track: ResMut<Track>,
+    mut ev_activate_pot: EventWriter<PotActiveEvent>,
+) {
     for mut track_timer in query.iter_mut() {
         track_timer.timer.tick(time.delta());
         let current_frame = (track_timer.timer.elapsed_secs_f64() / track.bpm).floor() as u64;
@@ -44,6 +57,7 @@ fn tick_track_timer(mut query: Query<&mut TrackTimer>, time: Res<Time>, mut trac
                 track.pos = 0;
                 track.iteration += 1;
             }
+            ev_activate_pot.send(PotActiveEvent(track.seq[track.pos].note.pot));
         }
     }
 }
@@ -75,6 +89,27 @@ struct TrackPotBundle {
     tag: TrackPotTag,
     sprite: SpriteBundle,
     pos: TrackPos,
+}
+
+fn start_playback(
+    mut commands: Commands,
+    server: Res<AssetServer>,
+    time: Res<Time<Virtual>>,
+    track: Res<Track>,
+    mut query: Query<&mut StartDelayTimer>,
+) {
+    for mut delay_timer in query.iter_mut() {
+        if delay_timer.timer.elapsed_secs_f64() < track.bpm * 24. {
+            delay_timer.timer.tick(time.delta());
+        } else if delay_timer.timer.elapsed_secs_f64() >= track.bpm * 24. {
+            commands.spawn(AudioBundle {
+                source: server.load("tj_01.ogg"),
+                ..default()
+            });
+            delay_timer.timer.reset();
+            delay_timer.timer.pause();
+        }
+    }
 }
 
 #[derive(Component)]
@@ -341,6 +376,9 @@ fn load_track(
     commands.spawn(TrackTimer {
         timer: Stopwatch::new(),
     });
+    commands.spawn(StartDelayTimer {
+        timer: Stopwatch::new(),
+    });
 }
 
 #[derive(Bundle)]
@@ -406,7 +444,7 @@ const SAMPLE_SEQ_TWO: [Seq; 8] = [
     Seq {
         time: 3,
         note: Note {
-            s1: OscType::Sine,
+            s1: OscType::Triangle,
             s2: None,
             pot: PotType::PotI,
         },
@@ -414,7 +452,7 @@ const SAMPLE_SEQ_TWO: [Seq; 8] = [
     Seq {
         time: 4,
         note: Note {
-            s1: OscType::Sine,
+            s1: OscType::Sawtooth,
             s2: None,
             pot: PotType::PotL,
         },
@@ -430,7 +468,7 @@ const SAMPLE_SEQ_TWO: [Seq; 8] = [
     Seq {
         time: 6,
         note: Note {
-            s1: OscType::Sine,
+            s1: OscType::Square,
             s2: None,
             pot: PotType::PotK,
         },
@@ -438,7 +476,7 @@ const SAMPLE_SEQ_TWO: [Seq; 8] = [
     Seq {
         time: 7,
         note: Note {
-            s1: OscType::Sine,
+            s1: OscType::Square,
             s2: None,
             pot: PotType::PotO,
         },
@@ -446,7 +484,7 @@ const SAMPLE_SEQ_TWO: [Seq; 8] = [
     Seq {
         time: 8,
         note: Note {
-            s1: OscType::Sine,
+            s1: OscType::Sawtooth,
             s2: None,
             pot: PotType::PotK,
         },

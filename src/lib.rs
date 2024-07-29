@@ -35,9 +35,22 @@ impl Plugin for OpticalRacePlugin {
                     // .run_if(in_state(ApplicationState::Loading))
                     // .run_if(in_state(ApplicationState::Menu))
                     .run_if(in_state(ApplicationState::InGame)),
-                PotSet.run_if(in_state(ApplicationState::InGame)),
+                // .run_if(in_state(ApplicationState::Freeform)),
+                PotSet.run_if(in_state(ApplicationState::InGame)), // .run_if(in_state(ApplicationState::Freeform)),
             ),
         );
+        // app.configure_sets(
+        //     OnEnter(ApplicationState::Freeform),
+        //     (
+        //         OscSet,
+        //         // .run_if(in_state(ApplicationState::Loading))
+        //         // .run_if(in_state(ApplicationState::Menu))
+        //         // .run_if(in_state(ApplicationState::Freeform)),
+        //         // .run_if(in_state(ApplicationState::Freeform)),
+        //         PotSet, // .run_if(in_state(ApplicationState::Freeform)), // .run_if(in_state(ApplicationState::Freeform)),
+        //     ),
+        // );
+
         app.configure_sets(OnEnter(ApplicationState::Menu), MenuSet);
         // app.configure_sets(OnEnter(ApplicationState::Loading), LoadingSet);
         app.configure_sets(
@@ -51,6 +64,7 @@ impl Plugin for OpticalRacePlugin {
                 PauseSet.run_if(in_state(PauseState::Paused)),
             ),
         );
+
         app.configure_sets(Update, (MenuSet.run_if(in_state(ApplicationState::Menu)),));
 
         app.configure_sets(
@@ -58,12 +72,27 @@ impl Plugin for OpticalRacePlugin {
             (
                 LedSet
                     .run_if(in_state(ApplicationState::InGame))
+                    // .run_if(in_state(ApplicationState::Freeform))
                     .run_if(in_state(PauseState::Unpaused)),
                 TrackSet
                     .run_if(in_state(ApplicationState::InGame))
+                    // .run_if(in_state(ApplicationState::Freeform))
                     .run_if(in_state(PauseState::Unpaused)),
             ),
         );
+        // app.configure_sets(
+        //     FixedUpdate,
+        //     (
+        //         LedSet
+        //             // .run_if(in_state(ApplicationState::InGame))
+        //             .run_if(in_state(ApplicationState::Freeform))
+        //             .run_if(in_state(PauseState::Unpaused)),
+        //         TrackSet
+        //             // .run_if(in_state(ApplicationState::InGame))
+        //             .run_if(in_state(ApplicationState::Freeform))
+        //             .run_if(in_state(PauseState::Unpaused)),
+        //     ),
+        // );
 
         app.add_systems(
             Update,
@@ -110,8 +139,9 @@ fn score_display(
     mut commands: Commands,
     mut score: ResMut<Score>,
     query: Query<Entity, With<ScoreDispTag>>,
+    state: Res<State<ModeState>>,
 ) {
-    if score.updated {
+    if score.updated || state.get() != &ModeState::Freeform {
         for entity in query.iter() {
             commands.entity(entity).despawn();
         }
@@ -125,12 +155,18 @@ fn score_display(
                         ..default()
                     },
                 ),
-                transform: Transform::from_translation(Vec3::new(256., 256., 104.)),
+                transform: Transform::from_translation(Vec3::new(0., 228., 104.)),
+                text_anchor: bevy::sprite::Anchor::CenterRight,
+                sprite_source: bevy::sprite::SpriteSource,
                 ..default()
             },
             ScoreDispTag,
         ));
         score.updated = false;
+    } else {
+        for entity in query.iter() {
+            commands.entity(entity).despawn();
+        }
     }
 }
 
@@ -162,6 +198,7 @@ pub enum ApplicationState {
     Menu,
     InGame,
     Exit,
+    Freeform,
 }
 
 #[derive(States, Debug, Default, Clone, PartialEq, Eq, Hash)]
@@ -169,6 +206,7 @@ pub enum ModeState {
     #[default]
     NotInGame,
     Singleplayer,
+    Freeform,
 }
 
 #[derive(States, Debug, Default, Clone, PartialEq, Eq, Hash)]

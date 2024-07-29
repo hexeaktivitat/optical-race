@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{audio::Volume, prelude::*};
 
 use crate::{
     osc::{OscState, OscType},
@@ -206,34 +206,45 @@ fn pot_input(
 
 #[allow(dead_code)]
 #[derive(Event)]
-struct PotActiveEvent(PotType);
+pub(crate) struct PotActiveEvent(pub(crate) PotType);
 
 fn activate_pot(
     mut ev_activate_pot: EventReader<PotActiveEvent>,
+    timer_query: Query<&TrackTimer>,
+    track: Res<Track>,
     osc_query: Query<(&OscType, &OscState)>,
     mut commands: Commands,
     server: Res<AssetServer>,
 ) {
     for pot_ev in ev_activate_pot.read() {
-        for (o_type, o_state) in osc_query.iter() {
-            if *o_state == OscState::Active {
-                let osc = match o_type {
-                    OscType::Sine => "sine_".to_string(),
-                    OscType::Triangle => "triangle_".to_string(),
-                    OscType::Square => "square_".to_string(),
-                    OscType::Sawtooth => "saw_".to_string(),
-                };
-                let pot = match pot_ev.0 {
-                    PotType::PotJ => "a.ogg".to_string(),
-                    PotType::PotI => "b.ogg".to_string(),
-                    PotType::PotK => "c.ogg".to_string(),
-                    PotType::PotO => "d.ogg".to_string(),
-                    PotType::PotL => "e.ogg".to_string(),
-                };
-                commands.spawn(AudioBundle {
-                    source: server.load(format!("{}{}", osc, pot)),
-                    ..default()
-                });
+        for timer in timer_query.iter() {
+            let current_frame = (timer.timer.elapsed_secs_f64() / track.bpm).floor() as u64;
+            let current_time = track.seq[track.pos].time + (8 * track.iteration);
+            if current_frame == current_time {
+                for (o_type, o_state) in osc_query.iter() {
+                    if *o_state == OscState::Active {
+                        let osc = match o_type {
+                            OscType::Sine => "sine_".to_string(),
+                            OscType::Triangle => "triangle_".to_string(),
+                            OscType::Square => "square_".to_string(),
+                            OscType::Sawtooth => "saw_".to_string(),
+                        };
+                        let pot = match pot_ev.0 {
+                            PotType::PotJ => "a.ogg".to_string(),
+                            PotType::PotI => "b.ogg".to_string(),
+                            PotType::PotK => "c.ogg".to_string(),
+                            PotType::PotO => "d.ogg".to_string(),
+                            PotType::PotL => "e.ogg".to_string(),
+                        };
+                        commands.spawn(AudioBundle {
+                            source: server.load(format!("{}{}", osc, pot)),
+                            settings: PlaybackSettings {
+                                volume: Volume::new(0.3),
+                                ..default()
+                            },
+                        });
+                    }
+                }
             }
         }
     }

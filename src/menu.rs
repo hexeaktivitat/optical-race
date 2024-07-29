@@ -33,6 +33,7 @@ enum MenuOptions {
     Start,
     Resume,
     Exit,
+    FreeMode,
 }
 
 fn menu_setup(mut commands: Commands, _server: Res<AssetServer>) {
@@ -124,6 +125,34 @@ fn menu_setup(mut commands: Commands, _server: Res<AssetServer>) {
                         background_color: BackgroundColor(Color::Srgba(LAVENDER)),
                         ..default()
                     },
+                    MenuOptions::FreeMode,
+                ))
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Button",
+                        TextStyle {
+                            // font: server.load("fonts/TitilliumWeb-SemiBold.ttf"),
+                            font_size,
+                            color: Srgba::rgb(0.1, 0.1, 0.1).into(),
+                            ..default()
+                        },
+                    ));
+                });
+            parent
+                .spawn((
+                    ButtonBundle {
+                        style: Style {
+                            width: Val::Px(150.0),
+                            height: Val::Px(65.0),
+                            border: UiRect::all(Val::Px(5.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        border_color: BorderColor(Color::Srgba(DARK_SEA_GREEN)),
+                        background_color: BackgroundColor(Color::Srgba(LAVENDER)),
+                        ..default()
+                    },
                     MenuOptions::Exit,
                 ))
                 .with_children(|parent| {
@@ -150,6 +179,7 @@ fn game_menu(
             MenuOptions::Start => text.sections[0].value = "Start Game".into(),
             MenuOptions::Resume => text.sections[0].value = "Resume Game".into(),
             MenuOptions::Exit => text.sections[0].value = "Quit Game".into(),
+            MenuOptions::FreeMode => text.sections[0].value = "Freeform".into(),
         }
     }
 }
@@ -173,11 +203,18 @@ fn interact_game_menu(
     {
         match *interaction {
             Interaction::Pressed => match menu_options {
-                MenuOptions::Start => next_app_state.set(ApplicationState::Loading),
+                MenuOptions::Start => {
+                    next_app_state.set(ApplicationState::Loading);
+                    next_mode_state.set(ModeState::Singleplayer);
+                }
                 MenuOptions::Resume => next_app_state.set(ApplicationState::InGame),
                 MenuOptions::Exit => {
                     next_app_state.set(ApplicationState::Exit);
                     next_mode_state.set(ModeState::NotInGame);
+                }
+                MenuOptions::FreeMode => {
+                    next_app_state.set(ApplicationState::Loading);
+                    next_mode_state.set(ModeState::Freeform);
                 }
             },
             Interaction::Hovered => {

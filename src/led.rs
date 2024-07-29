@@ -12,8 +12,13 @@ pub(super) struct LedPlugin;
 impl Plugin for LedPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(ApplicationState::Loading), load_leds);
+        app.add_systems(OnEnter(ApplicationState::Freeform), load_leds);
         app.add_systems(
             OnEnter(ApplicationState::InGame),
+            init_led_timer.in_set(LedSet),
+        );
+        app.add_systems(
+            OnEnter(ApplicationState::Freeform),
             init_led_timer.in_set(LedSet),
         );
         app.add_systems(FixedUpdate, tick_leds.in_set(LedSet));
